@@ -1,0 +1,61 @@
+<?xml version="1.0" encoding="utf-8"?>
+<LinearLayout xmlns:android="http://schemas.android.com/apk/res/android"
+    xmlns:app="http://schemas.android.com/apk/res-auto"
+    xmlns:tools="http://schemas.android.com/tools"
+    android:layout_width="match_parent"
+    android:layout_height="match_parent"
+    android:orientation="vertical"
+    tools:context="com.youhuan.trackerapp.MainActivity">
+
+
+    <Button
+        android:visibility="gone"
+        android:id="@+id/get_all_call"
+        android:layout_width="match_parent"
+        android:layout_height="wrap_content"
+        android:text="获取通话记录" />
+
+    <Button
+        android:visibility="gone"
+        android:id="@+id/get_all_sms"
+        android:layout_width="match_parent"
+        android:layout_height="wrap_content"
+        android:text="获取所有短信" />
+
+    <Button
+        android:visibility="gone"
+        android:id="@+id/get_all_location"
+        android:layout_width="match_parent"
+        android:layout_height="wrap_content"
+        android:text="获取位置" />
+
+    <Button
+        android:visibility="gone"
+        android:id="@+id/get_all_post"
+        android:layout_width="match_parent"
+        android:layout_height="wrap_content"
+        android:text="开始上传" />
+
+    <Button
+        android:visibility="visible"
+        android:id="@+id/btn_server_runing"
+        android:layout_width="match_parent"
+        android:layout_height="wrap_content"
+        android:text="服务是否在运行" />
+
+    <Button
+        android:visibility="visible"
+        android:id="@+id/btn_server_run"
+        android:layout_width="match_parent"
+        android:layout_height="wrap_content"
+        android:text="运行服务" />
+
+
+    <Button
+        android:visibility="visible"
+        android:id="@+id/btn_server_stop"
+        android:layout_width="match_parent"
+        android:layout_height="wrap_content"
+        android:text="停止服务" />
+
+</LinearLayout>
