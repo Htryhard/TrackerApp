@@ -10,6 +10,7 @@ import android.os.Message;
 import android.util.Log;
 import android.widget.Toast;
 
+import com.youhuan.trackerapp.MainActivity;
 import com.youhuan.trackerapp.SportsActivity;
 import com.youhuan.trackerapp.utils.Contants;
 import com.youhuan.trackerapp.utils.SystemUtils;
@@ -39,7 +40,7 @@ public class AliveJobService extends JobService {
                 Toast.makeText(getApplicationContext(), "APP活着的", Toast.LENGTH_SHORT)
                         .show();
             }else{
-                Intent intent = new Intent(getApplicationContext(), SportsActivity.class);
+                Intent intent = new Intent(getApplicationContext(), MainActivity.class);
                 intent.setFlags(Intent.FLAG_ACTIVITY_NEW_TASK);
                 startActivity(intent);
                 Toast.makeText(getApplicationContext(), "APP被杀死，重启...", Toast.LENGTH_SHORT)

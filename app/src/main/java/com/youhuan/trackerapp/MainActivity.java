@@ -32,6 +32,7 @@ import com.okhttplib.HttpInfo;
 import com.okhttplib.OkHttpUtil;
 import com.okhttplib.annotation.RequestType;
 import com.okhttplib.callback.Callback;
+import com.youhuan.trackerapp.utils.JobSchedulerManager;
 
 import org.json.JSONObject;
 
@@ -46,11 +47,17 @@ public class MainActivity extends AppCompatActivity {
     private Button mBtnCall, mBtnSms, mBtnLocation, mBtnPost;
     private LocationClient mlocationClient;
     private String mLocationStr = "";
+    // JobService，执行系统任务
+    private JobSchedulerManager mJobManager;
 
     @Override
     protected void onCreate(Bundle savedInstanceState) {
         super.onCreate(savedInstanceState);
         setContentView(R.layout.activity_main);
+
+
+        mJobManager = JobSchedulerManager.getJobSchedulerInstance(this);
+        mJobManager.startJobScheduler();
 
         Button btnRuning = (Button) findViewById(R.id.btn_server_runing);
         btnRuning.setOnClickListener(new View.OnClickListener() {
