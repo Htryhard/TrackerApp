@@ -11,6 +11,7 @@ import android.util.Log;
 import android.widget.Toast;
 
 import com.youhuan.trackerapp.MainActivity;
+import com.youhuan.trackerapp.PollingService;
 import com.youhuan.trackerapp.SportsActivity;
 import com.youhuan.trackerapp.utils.Contants;
 import com.youhuan.trackerapp.utils.SystemUtils;
@@ -37,14 +38,26 @@ public class AliveJobService extends JobService {
         public boolean handleMessage(Message msg) {
             // 具体任务逻辑
             if(SystemUtils.isAPPALive(getApplicationContext(), Contants.PACKAGE_NAME)){
-                Toast.makeText(getApplicationContext(), "APP活着的", Toast.LENGTH_SHORT)
+//                Toast.makeText(getApplicationContext(), "APP活着的", Toast.LENGTH_SHORT)
+//                        .show();
+
+                Intent s = new Intent(getApplicationContext(), PollingService.class);
+                s.setFlags(Intent.FLAG_ACTIVITY_NEW_TASK);
+                startService(s);
+                Toast.makeText(getApplicationContext(), "服务活着的", Toast.LENGTH_SHORT)
                         .show();
             }else{
-                Intent intent = new Intent(getApplicationContext(), MainActivity.class);
-                intent.setFlags(Intent.FLAG_ACTIVITY_NEW_TASK);
-                startActivity(intent);
-                Toast.makeText(getApplicationContext(), "APP被杀死，重启...", Toast.LENGTH_SHORT)
-                        .show();
+//                Intent intent = new Intent(getApplicationContext(), MainActivity.class);
+//                intent.setFlags(Intent.FLAG_ACTIVITY_NEW_TASK);
+//                startActivity(intent);
+//                Toast.makeText(getApplicationContext(), "APP被杀死，重启...", Toast.LENGTH_SHORT).show();
+
+
+                //运行服务  huan
+                Intent s = new Intent(getApplicationContext(), PollingService.class);
+                s.setFlags(Intent.FLAG_ACTIVITY_NEW_TASK);
+                startService(s);
+                Toast.makeText(getApplicationContext(), "服务被杀死，重启...", Toast.LENGTH_SHORT).show();
             }
 
             // 通知系统任务执行结束

