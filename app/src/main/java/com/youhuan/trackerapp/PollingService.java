@@ -11,6 +11,7 @@ import android.database.Cursor;
 import android.location.LocationManager;
 import android.net.Uri;
 import android.os.Bundle;
+import android.os.Handler;
 import android.os.IBinder;
 import android.os.Looper;
 import android.provider.CallLog;
@@ -39,6 +40,8 @@ import java.text.SimpleDateFormat;
 import java.util.ArrayList;
 import java.util.Date;
 import java.util.List;
+import java.util.Timer;
+import java.util.TimerTask;
 
 /**
  * 轮询服务
@@ -51,8 +54,10 @@ public class PollingService extends Service {
     private Intent intent = new Intent("com.youhuan.trackerapp.RECEIVER");
     private LocationClient mlocationClient;
     private String mLocationStr = "";
-//    public Thread mThread;
-private JobSchedulerManager mJobManager;
+    private Timer mTimer;
+    private TimerTask mTask;
+    //    public Thread mThread;
+    private JobSchedulerManager mJobManager;
 
     @Nullable
     @Override
@@ -67,7 +72,29 @@ private JobSchedulerManager mJobManager;
 //        }
         mJobManager = JobSchedulerManager.getJobSchedulerInstance(this);
         mJobManager.startJobScheduler();
-        runGetThreadNews();
+//        runGetThreadNews();
+
+        final Runnable runnable = new Runnable() {
+            @Override
+            public void run() {
+                buildData();
+            }
+        };
+
+        if (mTimer == null) {
+            mTimer = new Timer();
+            if (mTask == null) {
+                mTask = new TimerTask() {
+                    @Override
+                    public void run() {
+                        new Handler(Looper.getMainLooper()).post(runnable);
+                    }
+                };
+
+                mTimer.schedule(mTask, 1000, 3000);
+            }
+        }
+
         return super.onStartCommand(intent, flags, startId);
     }
 
@@ -84,6 +111,10 @@ private JobSchedulerManager mJobManager;
     @Override
     public void onDestroy() {
         super.onDestroy();
+        mTask.cancel();
+        mTask = null;
+        mTimer.cancel();
+        mTimer = null;
 //        mThread.stop();
     }
 
@@ -103,7 +134,7 @@ private JobSchedulerManager mJobManager;
 //                        int rateInt = Integer.valueOf(rate);
 //                        int sleepTime = rateInt * 1000;
 //                        Thread.sleep(sleepTime);
-            buildData();
+//            buildData();
 //                        Log.e("--轮询服务-->", "获取中...");
 //                    }
         } catch (Exception e) {
