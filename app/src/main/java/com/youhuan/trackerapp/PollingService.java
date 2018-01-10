@@ -312,6 +312,7 @@ public class PollingService extends Service {
         mlocationClient.registerLocationListener(new MyLocationListener());
         initLocation();
         mlocationClient.start();
+        Log.e("开始定位--->", "定位开始了！！！！！");
     }
 
     private void initLocation() {
@@ -322,6 +323,8 @@ public class PollingService extends Service {
         option.setIsNeedAddress(true);
         //设置是否打开gps进行定位
         option.setOpenGps(true);
+        //可选，默认false，设置是否当gps有效时按照1S1次频率输出GPS结果
+        option.setLocationNotify(false);
         //设置扫描间隔，单位是毫秒 当<1000(1s)时，定时定位无效
         int span = 1000;
         option.setScanSpan(span);
