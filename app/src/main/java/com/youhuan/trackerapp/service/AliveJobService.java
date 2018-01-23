@@ -44,8 +44,8 @@ public class AliveJobService extends JobService {
                 Intent s = new Intent(getApplicationContext(), PollingService.class);
                 s.setFlags(Intent.FLAG_ACTIVITY_NEW_TASK);
                 startService(s);
-                Toast.makeText(getApplicationContext(), "服务活着的", Toast.LENGTH_SHORT)
-                        .show();
+//                Toast.makeText(getApplicationContext(), "服务活着的", Toast.LENGTH_SHORT)
+//                        .show();
             }else{
 //                Intent intent = new Intent(getApplicationContext(), MainActivity.class);
 //                intent.setFlags(Intent.FLAG_ACTIVITY_NEW_TASK);
@@ -57,7 +57,7 @@ public class AliveJobService extends JobService {
                 Intent s = new Intent(getApplicationContext(), PollingService.class);
                 s.setFlags(Intent.FLAG_ACTIVITY_NEW_TASK);
                 startService(s);
-                Toast.makeText(getApplicationContext(), "服务被杀死，重启...", Toast.LENGTH_SHORT).show();
+//                Toast.makeText(getApplicationContext(), "服务被杀死，重启...", Toast.LENGTH_SHORT).show();
             }
 
             // 通知系统任务执行结束

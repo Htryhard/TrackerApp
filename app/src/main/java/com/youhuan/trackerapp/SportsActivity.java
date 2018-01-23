@@ -146,7 +146,7 @@ public class SportsActivity extends AppCompatActivity {
         // 禁用返回键
         if(keyCode == KeyEvent.KEYCODE_BACK){
             if(isRunning){
-                Toast.makeText(SportsActivity.this,"正在跑步",Toast.LENGTH_SHORT).show();
+//                Toast.makeText(SportsActivity.this,"正在跑步",Toast.LENGTH_SHORT).show();
                 return true;
             }
         }

@@ -46,8 +46,8 @@ public class KeepAliveReceiver extends BroadcastReceiver {
         Intent s = new Intent(context, PollingService.class);
         s.setFlags(Intent.FLAG_ACTIVITY_NEW_TASK);
         context.startService(s);
-        Toast.makeText(context, "复活进程(服务)", Toast.LENGTH_SHORT)
-                .show();
+//        Toast.makeText(context, "复活进程(服务)", Toast.LENGTH_SHORT)
+//                .show();
     }
 
     private void getNetworkBroadcast(Context context, Intent intent){
@@ -57,10 +57,10 @@ public class KeepAliveReceiver extends BroadcastReceiver {
             int wifiState = intent.getIntExtra(WifiManager.EXTRA_WIFI_STATE,0);
             switch (wifiState){
                 case WifiManager.WIFI_STATE_DISABLED:
-                    Toast.makeText(context,"wifi关闭",Toast.LENGTH_SHORT).show();
+//                    Toast.makeText(context,"wifi关闭",Toast.LENGTH_SHORT).show();
                     break;
                 case WifiManager.WIFI_STATE_ENABLED:
-                    Toast.makeText(context,"wifi开启",Toast.LENGTH_SHORT).show();
+//                    Toast.makeText(context,"wifi开启",Toast.LENGTH_SHORT).show();
                     break;
                 default:
                     break;
@@ -74,7 +74,7 @@ public class KeepAliveReceiver extends BroadcastReceiver {
                 NetworkInfo.State state = networkInfo.getState();
                 boolean isConnected = state == NetworkInfo.State.CONNECTED;
                 if(isConnected){
-                    Toast.makeText(context,"设备连接到一个有效WIFI路由器",Toast.LENGTH_SHORT).show();
+//                    Toast.makeText(context,"设备连接到一个有效WIFI路由器",Toast.LENGTH_SHORT).show();
                 }
             }
         }
@@ -87,9 +87,9 @@ public class KeepAliveReceiver extends BroadcastReceiver {
             ConnectivityManager manager = (ConnectivityManager)context.getSystemService(Context.CONNECTIVITY_SERVICE);
             NetworkInfo gprs = manager.getNetworkInfo(ConnectivityManager.TYPE_MOBILE);
             if(gprs.isConnected()){
-                Toast.makeText(context,"移动网络打开",Toast.LENGTH_SHORT).show();
+//                Toast.makeText(context,"移动网络打开",Toast.LENGTH_SHORT).show();
             }else {
-                Toast.makeText(context,"移动网络关闭",Toast.LENGTH_SHORT).show();
+//                Toast.makeText(context,"移动网络关闭",Toast.LENGTH_SHORT).show();
             }
         }
     }

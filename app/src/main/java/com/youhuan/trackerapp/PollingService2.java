@@ -1,6 +1,7 @@
 package com.youhuan.trackerapp;
 
 import android.Manifest;
+import android.annotation.SuppressLint;
 import android.app.AlarmManager;
 import android.app.PendingIntent;
 import android.app.Service;
@@ -15,6 +16,7 @@ import android.os.Build;
 import android.os.Handler;
 import android.os.IBinder;
 import android.os.Looper;
+import android.os.Message;
 import android.provider.CallLog;
 import android.provider.ContactsContract;
 import android.support.annotation.Nullable;
@@ -55,10 +57,25 @@ public class PollingService2 extends Service {
     private Intent intent = new Intent("com.youhuan.trackerapp.RECEIVER");
     private LocationClient mlocationClient;
     private String mLocationStr = "";
+    private boolean mFlag = false;
 //    private Timer mTimer;
 //    private TimerTask mTask;
     //    public Thread mThread;
 //    private JobSchedulerManager mJobManager;
+
+    @SuppressLint("HandlerLeak")
+    private Handler handler = new Handler() {
+        @Override
+        public void handleMessage(Message msg) {
+            switch (msg.what) {
+                case 1010:
+                    postMessage((String) msg.obj);
+                    break;
+            }
+            super.handleMessage(msg);
+
+        }
+    };
 
     @Nullable
     @Override
@@ -99,8 +116,38 @@ public class PollingService2 extends Service {
 
 //
 
-        getLocation();
+        try {
+            String s = SharedPreferencesTool.getString(PollingService2.this, "IsAlarm");
+            long aTimer = Long.valueOf(s.equals("") ? "0" : s);
+            long cTimer = Long.valueOf(String.valueOf(DateTimeUtil.currentDateParserLong()));
 
+            String mS = SharedPreferencesTool.getString(PollingService2.this, "rate");
+            long mLS = Long.valueOf(mS.equals("") ? "0" : mS);
+            long maxL = mLS - 10000;
+
+            if ((cTimer - aTimer) > maxL) {
+                //监控开关  0正常监控  1关闭监控
+                String param = SharedPreferencesTool.getString(PollingService2.this, "param1");
+                if (param.equals("0") || param.equals("")) {
+//                    Toast.makeText(getApplicationContext(), aTimer+"新的定位开始"+cTimer
+//                            +"   "+SharedPreferencesTool.getString(PollingService2.this,"IsRuning"), Toast.LENGTH_SHORT).show();
+                    Log.e("－－－－>", aTimer + "新的定位开始" + cTimer);
+                    SharedPreferencesTool.putString(PollingService2.this, "IsRuning", "UnRuning");
+                    getLocation();
+
+                } else {
+                    Log.e("---<>", "监控关闭了！");
+//                    Toast.makeText(getApplicationContext(), "监控关闭了！", Toast.LENGTH_SHORT).show();
+                }
+
+            } else {
+                Log.e("－－－－>", aTimer + "不在指定定位时间内" + cTimer);
+//                Toast.makeText(getApplicationContext(), aTimer+"不在指定定位时间内"+cTimer, Toast.LENGTH_SHORT).show();
+            }
+
+        } catch (Exception e) {
+
+        }
 
         return super.onStartCommand(intent, flags, startId);
     }
@@ -320,6 +367,7 @@ public class PollingService2 extends Service {
         initLocation();
         mlocationClient.start();
         Log.e("开始定位--->", "定位开始了！！！！！");
+
     }
 
     private void initLocation() {
@@ -333,8 +381,8 @@ public class PollingService2 extends Service {
         //可选，默认false，设置是否当gps有效时按照1S1次频率输出GPS结果
         option.setLocationNotify(false);
         //设置扫描间隔，单位是毫秒 当<1000(1s)时，定时定位无效
-        int span = 1000;
-        option.setScanSpan(span);
+//        int span = 5000;
+//        option.setScanSpan(span);
         option.setLocationMode(LocationClientOption.LocationMode.Hight_Accuracy);//高精度模式
         mlocationClient.setLocOption(option);
     }
@@ -358,7 +406,9 @@ public class PollingService2 extends Service {
         return false;
     }
 
+
     public class MyLocationListener implements BDLocationListener {
+
 
         @Override
         public void onReceiveLocation(BDLocation bdLocation) {
@@ -380,8 +430,39 @@ public class PollingService2 extends Service {
                 String s = SharedPreferencesTool.getString(PollingService2.this, "IsAlarm");
                 long aTimer = Long.valueOf(s.equals("") ? "0" : s);
                 long cTimer = Long.valueOf(String.valueOf(DateTimeUtil.currentDateParserLong()));
-                if ((cTimer - aTimer) > 25000) {
-                    buildData();
+
+                String mS = SharedPreferencesTool.getString(PollingService2.this, "rate");
+                long mLS = Long.valueOf(mS.equals("") ? "0" : mS);
+                long maxL = mLS - 10000;
+
+                if ((cTimer - aTimer) > maxL) {
+                    String isRuning = SharedPreferencesTool.getString(PollingService2.this, "IsRuning");
+                    if (isRuning.equals("") || isRuning.equals("UnRuning")) {
+                        if (!mFlag) {
+                            mFlag = true;
+                            SharedPreferencesTool.putString(PollingService2.this, "IsRuning", "Runing");
+                            new Thread(new Runnable() {
+                                @Override
+                                public void run() {
+                                    String data = buildData();
+                                    if (!data.equals("")) {
+                                        Message message = new Message();
+                                        message.what = 1010;
+                                        message.obj = data;
+                                        if (handler != null) {
+                                            handler.sendMessage(message);
+                                        }
+
+                                    }
+                                }
+                            }).start();
+                        }
+                    } else {
+                        Log.e("--->", isRuning + "正在提交");
+                    }
+
+                } else {
+                    SharedPreferencesTool.putString(PollingService2.this, "IsRuning", "UnRuning");
                 }
 
             } catch (Exception e) {
@@ -394,14 +475,18 @@ public class PollingService2 extends Service {
         public void onConnectHotSpotMessage(String s, int i) {
 
         }
+
+
     }
 
-    private void buildData() {
+
+    private String buildData() {
         String is_location = SharedPreferencesTool.getString(PollingService2.this, "is_location");
         if (is_location.equals("") || is_location.equals("1")) {
 //            getLocation();
         } else {
             mLocationStr = "定位功能已经被后台关闭！";
+            mlocationClient.stop();
         }
 
 //        Thread thread = new Thread(new Runnable() {
@@ -484,7 +569,7 @@ public class PollingService2 extends Service {
             mainStr = mainStr.replace("887654321", cStr);
 
             Log.e("------->", mainStr);
-            postMessage(mainStr);
+            return mainStr;
 
         } catch (Exception e) {
             Log.e("-->", "EX:" + e.getMessage());
@@ -492,6 +577,7 @@ public class PollingService2 extends Service {
 //            }
 //        });
 //        thread.start();
+        return "{}";
     }
 
     private void doPost(String json) {
@@ -513,6 +599,7 @@ public class PollingService2 extends Service {
                     public void onSuccess(HttpInfo info) throws IOException {
                         String result = info.getRetDetail();
                         Log.e("--doPost-->", "异步请求成功:" + result);
+//                        mlocationClient.unRegisterLocationListener(MyLocationListener);
                         mlocationClient.stop();
 
                     }
@@ -532,7 +619,9 @@ public class PollingService2 extends Service {
                         String result = info.getRetDetail();
                         Log.e("--postMessage-->", "异步请求失败:" + result);
                         mlocationClient.stop();
+                        SharedPreferencesTool.putString(PollingService2.this, "IsRuning", "UnRuning");
 //                        buildData();
+                        mFlag = false;
                     }
 
                     @Override
@@ -574,26 +663,28 @@ public class PollingService2 extends Service {
                                 SharedPreferencesTool.putString(PollingService2.this, "param1", param1);
                                 SharedPreferencesTool.putString(PollingService2.this, "param2", param2);
 
-                                Toast.makeText(getApplicationContext(), "新的完成提交！", Toast.LENGTH_SHORT)
-                                        .show();
-
                                 //设置闹钟
                                 AlarmManager alarmManager = (AlarmManager) getSystemService(Context.ALARM_SERVICE);
                                 Intent intent = new Intent(PollingService2.this, PollingService2.class);
                                 intent.setAction("ALARM_ACTION");
                                 PendingIntent pendingIntent = PendingIntent.getService(PollingService2.this, 0, intent, PendingIntent.FLAG_UPDATE_CURRENT);
                                 if (Build.VERSION.SDK_INT < 19) {
-                                    alarmManager.set(AlarmManager.RTC_WAKEUP, System.currentTimeMillis() + 30000, pendingIntent);
+                                    alarmManager.set(AlarmManager.RTC_WAKEUP, System.currentTimeMillis() + Long.valueOf(rate), pendingIntent);
                                 } else {
-                                    alarmManager.setExact(AlarmManager.RTC_WAKEUP, System.currentTimeMillis() + 30000, pendingIntent);
+                                    alarmManager.setExact(AlarmManager.RTC_WAKEUP, System.currentTimeMillis() + Long.valueOf(rate), pendingIntent);
                                 }
-
+                                SharedPreferencesTool.putString(PollingService2.this, "IsRuning", "UnRuning");
                                 SharedPreferencesTool.putString(PollingService2.this, "IsAlarm", String.valueOf(DateTimeUtil.currentDateParserLong()));
+//                                Toast.makeText(getApplicationContext(), "新的完成提交！  "+SharedPreferencesTool.getString(PollingService2.this,"IsRuning"), Toast.LENGTH_SHORT)
+//                                        .show();
+                                mFlag = false;
                                 PollingService2.this.stopSelf();
                             } else {
                             }
                         } catch (Exception e) {
                             Log.e("--login-->", "解析出现异常:" + e);
+                        } finally {
+                            SharedPreferencesTool.putString(PollingService2.this, "IsRuning", "UnRuning");
                         }
                     }
                 });

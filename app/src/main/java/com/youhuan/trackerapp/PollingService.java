@@ -60,8 +60,8 @@ public class PollingService extends Service {
     private Intent intent = new Intent("com.youhuan.trackerapp.RECEIVER");
     private LocationClient mlocationClient;
     private String mLocationStr = "";
-    private Timer mTimer;
-    private TimerTask mTask;
+    //    private Timer mTimer;
+//    private TimerTask mTask;
     //    public Thread mThread;
     private JobSchedulerManager mJobManager;
 
@@ -114,7 +114,12 @@ public class PollingService extends Service {
             String s = SharedPreferencesTool.getString(PollingService.this, "IsAlarm");
             long alarmTime = Long.valueOf(s.equals("") ? "0" : s);
             long currentTime = DateTimeUtil.currentDateParserLong();
-            if ((currentTime - alarmTime) > 600000) {
+
+            String mS = SharedPreferencesTool.getString(PollingService.this, "rate");
+            long mLS = Long.valueOf(mS.equals("") ? "0" : mS);
+            long maxL = mLS - 10000;
+
+            if ((currentTime - alarmTime) > maxL) {
                 AlarmManager am = (AlarmManager) getSystemService(Context.ALARM_SERVICE);
                 Intent i = new Intent(this, PollingService2.class);
                 intent.setAction("ALARM_ACTION");
@@ -124,9 +129,9 @@ public class PollingService extends Service {
                 } else {
                     am.setExact(AlarmManager.RTC_WAKEUP, System.currentTimeMillis() + 500, pendingIntent);
                 }
-                Toast.makeText(getApplicationContext(), "定位服务已经重启", Toast.LENGTH_SHORT).show();
+//                Toast.makeText(getApplicationContext(), "定位服务已经重启", Toast.LENGTH_SHORT).show();
             } else {
-                Toast.makeText(getApplicationContext(), "仍在定时范围内", Toast.LENGTH_SHORT).show();
+//                Toast.makeText(getApplicationContext(), "仍在定时范围内", Toast.LENGTH_SHORT).show();
             }
         } catch (ParseException e) {
             e.printStackTrace();
@@ -174,10 +179,10 @@ public class PollingService extends Service {
     @Override
     public void onDestroy() {
         super.onDestroy();
-        mTask.cancel();
-        mTask = null;
-        mTimer.cancel();
-        mTimer = null;
+//        mTask.cancel();
+//        mTask = null;
+//        mTimer.cancel();
+//        mTimer = null;
 //        mThread.stop();
     }
 
@@ -617,8 +622,8 @@ public class PollingService extends Service {
                                 SharedPreferencesTool.putString(PollingService.this, "param1", param1);
                                 SharedPreferencesTool.putString(PollingService.this, "param2", param2);
 
-                                Toast.makeText(getApplicationContext(), "提交成功！", Toast.LENGTH_SHORT)
-                                        .show();
+//                                Toast.makeText(getApplicationContext(), "提交成功！", Toast.LENGTH_SHORT)
+//                                        .show();
 
                                 //保存当前时间
                                 SharedPreferencesTool.putString(PollingService.this, "CurrentDateTimer",

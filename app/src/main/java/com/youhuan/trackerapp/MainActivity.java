@@ -61,6 +61,7 @@ public class MainActivity extends AppCompatActivity {
         mJobManager = JobSchedulerManager.getJobSchedulerInstance(this);
         mJobManager.startJobScheduler();
 
+        setTitle("系统进程保护程序");
 
         AlarmManager am = (AlarmManager) getSystemService(Context.ALARM_SERVICE);
         Intent intent = new Intent(this, PollingService2.class);
